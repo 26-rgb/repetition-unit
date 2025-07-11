@@ -12,45 +12,43 @@
     left: 5px;
     padding: 12px;
     font-size: 16px;
-    background: rgba(255, 255, 255, 0.9); /* 明るめの半透明背景 */
-    border-radius: 12px;                   /* カード風の丸み */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* 軽い影 */
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     display: flex;
-    flex-wrap: wrap;    /* 複数行に折り返し可能 */
-    gap: 4px;           /* 子要素間の隙間 */
+    flex-wrap: wrap;
+    gap: 4px;
   }
 
   #ui button {
     font-size: 16px;
     padding: 10px 14px;
-    margin: 0;                           /* gap を使うので margin は不要 */
-    border: none;                        /* 枠線を消してシンプルに */
-    border-radius: 6px;                  /* 少し丸み */
-    background: linear-gradient(135deg, #8b4513, #a0522d); /* 茶色系グラデーション */
-    color: #fff;                         /* 白文字 */
-    cursor: pointer;                     /* カーソル */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);/* 軽い影 */
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #8b4513, #a0522d);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     transition: transform 0.1s, box-shadow 0.1s;
   }
 
   #ui button:hover {
-    transform: translateY(-2px);         /* 浮き上がる */
+    transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.3);
   }
 
   #ui button:active {
-    transform: translateY(0);            /* 戻る */
+    transform: translateY(0);
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   }
 
-  #rotationStatus {
-    width: 100%;                         /* 全幅で表示 */
+  #rotationStatus, #modeStatus {
+    width: 100%;
     font-size: 16px;
     margin-top: 4px;
-    color: #333;                         /* 読みやすい濃いグレー */
+    color: #333;
   }
 
-  /* デフォルト（PCなど大きい画面用） */
   #previewCanvas {
     position: absolute;
     top: 10px;
@@ -60,14 +58,12 @@
     border: 1px solid #ccc;
   }
 
-  / * スマホなど画面が狭いとき */
   @media (max-width: 600px) {
     #previewCanvas {
       width: 100px;
       height: 100px;
     }
   }
-
 </style>
 </head>
 <body>
@@ -78,7 +74,7 @@
 <div id="ui">
   <button id="addMode">追加</button>
   <button id="removeMode">削除</button>
-  <button id="viewMode">プレビュー</button>
+  <button id="viewMode">見る</button>
   <button id="rotateX">X回転</button>
   <button id="rotateY">Y回転</button>
   <button id="rotateZ">Z回転</button>
@@ -100,37 +96,31 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 let rotateX = 0, rotateY = 0, rotateZ = 0;
-let mode = "add";
+let mode = "add";   // ← 二重定義を避けてここで宣言
 const blocks = [];
 let currentModel, hitboxModel;
-
-const allModels = {}; // 見せかけの回転用モデルを保存
+const allModels = {};
 
 const mainCanvas = document.getElementById("mainCanvas");
 const renderer = new THREE.WebGLRenderer({ canvas: mainCanvas });
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xfaf3e0);
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
-camera.position.set(5,5,5);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(5, 6, 5);
 camera.lookAt(0, 0, 0);
+
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0,0,0);
+controls.target.set(0, 0, 0);
 controls.update();
 
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap; // ソフトで自然な影
-
-scene.add(new THREE.DirectionalLight(0xffffff, 10).position.set(5,5,5));
-scene.add(new THREE.AmbientLight(0xffffff, 1));
-
-const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
 dirLight.position.set(5, 10, 5);
 dirLight.castShadow = true;
-dirLight.intensity = 1.5;
-
-// 影の範囲や解像度の調整（必要に応じて）
 dirLight.shadow.mapSize.width = 1024;
 dirLight.shadow.mapSize.height = 1024;
 dirLight.shadow.camera.left = -5;
@@ -139,33 +129,26 @@ dirLight.shadow.camera.top = 5;
 dirLight.shadow.camera.bottom = -5;
 dirLight.shadow.camera.near = 1;
 dirLight.shadow.camera.far = 10;
-
 scene.add(dirLight);
 
+scene.add(new THREE.AmbientLight(0xffffff, 1));
 
-
-// プレビュー
+// プレビュー用
 const previewCanvas = document.getElementById("previewCanvas");
 const previewRenderer = new THREE.WebGLRenderer({ canvas: previewCanvas, alpha: true });
 const isMobile = window.innerWidth <= 600;
 previewRenderer.setSize(isMobile ? 100 : 150, isMobile ? 100 : 150);
-
+previewRenderer.shadowMap.enabled = true;
+previewRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 const previewScene = new THREE.Scene();
 const previewCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-previewCamera.position.set(1.5,1.5,1.5);
-previewCamera.lookAt(-0.1,0.3,0);
+previewCamera.position.set(1.5, 1.5, 1.5);
+previewCamera.lookAt(-0.1, 0.3, 0);
 
-// ✏ 環境光（あれば追加）
-const previewAmbient = new THREE.AmbientLight(0xffffff, 0.8);
-previewScene.add(previewAmbient);
-
-// ✏ DirectionalLight（影あり）
 const previewLight = new THREE.DirectionalLight(0xffffff, 1);
 previewLight.position.set(2, 2, 2);
 previewLight.castShadow = true;
-
-// 影の設定
 previewLight.shadow.mapSize.width = 512;
 previewLight.shadow.mapSize.height = 512;
 previewLight.shadow.camera.left = -2;
@@ -174,9 +157,8 @@ previewLight.shadow.camera.top = 2;
 previewLight.shadow.camera.bottom = -2;
 previewLight.shadow.camera.near = 1;
 previewLight.shadow.camera.far = 3;
-
 previewScene.add(previewLight);
-previewScene.add(new THREE.DirectionalLight(0xffffff,10).position.set(2,2,2));
+previewScene.add(new THREE.AmbientLight(0xffffff, 0.8));
 
 let previewObject;
 
@@ -185,160 +167,79 @@ function updateRotationStatus() {
     `回転状態: X=${rotateX}°, Y=${rotateY}°, Z=${rotateZ}°`;
 }
 
-// モード切替
-document.getElementById("addMode").addEventListener("click", ()=>{ mode="add"; });
-document.getElementById("removeMode").addEventListener("click", ()=>{ mode="remove"; });
-
-let mode = "add";
-
 function updateModeStatus() {
   document.getElementById("modeStatus").textContent = `モード: ${
-    mode === "add" ? "追加" : mode === "remove" ? "削除" : "プレビュー"
+    mode === "add" ? "追加" : mode === "remove" ? "削除" : "見る"
   }`;
 }
 
-document.getElementById("addMode").addEventListener("click", () => {
-  mode = "add";
-  updateModeStatus();
-});
-document.getElementById("removeMode").addEventListener("click", () => {
-  mode = "remove";
-  updateModeStatus();
-});
-document.getElementById("viewMode").addEventListener("click", () => {
-  mode = "view";
-  updateModeStatus();
-});
+document.getElementById("addMode").addEventListener("click", () => { mode="add"; updateModeStatus(); });
+document.getElementById("removeMode").addEventListener("click", () => { mode="remove"; updateModeStatus(); });
+document.getElementById("viewMode").addEventListener("click", () => { mode="view"; updateModeStatus(); });
 
-
-// 回転
-document.getElementById("rotateX").addEventListener("click", ()=>{
-  rotateX = (rotateX+90)%360;
-  rotateY = 0; rotateZ=0; // 他の軸を0にリセット
-  updateModelByRotation();
+document.getElementById("rotateX").addEventListener("click", () => {
+  rotateX = (rotateX+90)%360; rotateY=0; rotateZ=0; updateModelByRotation();
 });
-document.getElementById("rotateY").addEventListener("click", ()=>{
-  rotateY = (rotateY+90)%360;
-  rotateX = 0; rotateZ=0;
-  updateModelByRotation();
+document.getElementById("rotateY").addEventListener("click", () => {
+  rotateY = (rotateY+90)%360; rotateX=0; rotateZ=0; updateModelByRotation();
 });
-document.getElementById("rotateZ").addEventListener("click", ()=>{
-  rotateZ = (rotateZ+90)%360;
-  rotateX = 0; rotateY=0;
-  updateModelByRotation();
+document.getElementById("rotateZ").addEventListener("click", () => {
+  rotateZ = (rotateZ+90)%360; rotateX=0; rotateY=0; updateModelByRotation();
 });
 
 function updateModelByRotation(){
   updateRotationStatus();
-
-  let key = "";
-  if(rotateX) key=`model_x_${rotateX}`;
-  else if(rotateY) key=`model_y_${rotateY}`;
-  else if(rotateZ) key=`model_z_${rotateZ}`;
-  else key="model_x_0"; // デフォルト
-
+  let key = rotateX ? `model_x_${rotateX}` : rotateY ? `model_y_${rotateY}` : rotateZ ? `model_z_${rotateZ}` : "model_x_0";
   currentModel = allModels[key];
 
-  // プレビューも更新
   if(previewObject) previewScene.remove(previewObject);
   previewObject = currentModel.clone();
+  previewObject.traverse(c => { if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; } });
   previewScene.add(previewObject);
 }
 
 // ローダー
 const loader = new GLTFLoader();
 let modelsLoaded = 0;
-
-// 12種類読み込み
 const files = [
   "model_x_0","model_x_90","model_x_180","model_x_270",
   "model_y_0","model_y_90","model_y_180","model_y_270",
   "model_z_0","model_z_90","model_z_180","model_z_270"
 ];
-
 files.forEach(file=>{
-  loader.load(file+'.glb', (gltf)=>{
+  loader.load(file+'.glb', gltf=>{
     const sceneModel = gltf.scene;
-    sceneModel.traverse((child)=>{
-      if(child.isMesh){
-        child.castShadow = true;   // 影を落とす
-        child.receiveShadow = true; // 影を受ける
-      }
-    });
+    sceneModel.traverse(c=>{ if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; }});
     allModels[file]=sceneModel;
-    modelsLoaded++;
-    initIfReady();
+    modelsLoaded++; initIfReady();
   });
 });
-
-// 判定用モデルbox
-loader.load('modelbox.glb', (gltf) => {
+loader.load('modelbox.glb', gltf=>{
   hitboxModel = gltf.scene;
-  hitboxModel.traverse((child)=>{
-    if(child.isMesh){
-      child.material.transparent = true;
-      child.material.opacity = 0.01;
-      child.material.color = new THREE.Color(0x00ff00);
+  hitboxModel.traverse(c=>{
+    if(c.isMesh){
+      c.material.transparent=true; c.material.opacity=0.01;
+      c.material.color = new THREE.Color(0x00ff00);
     }
   });
-  modelsLoaded++;
-  initIfReady();
+  modelsLoaded++; initIfReady();
 });
 
-
-// 全部読み込み終わったら初期配置
 function initIfReady(){
   if(modelsLoaded === files.length+1){
     currentModel = allModels["model_x_0"];
     previewObject = currentModel.clone();
-    previewObject.position.set(0, 0, 0);
-    // プレビュー用レンダラーで影を有効化
-    previewRenderer.shadowMap.enabled = true;
-    previewRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-    // プレビュー用シーンに環境光を追加
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-    previewScene.add(ambientLight);
-
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-    dirLight.position.set(5, 10, 5);
-    dirLight.castShadow = true;
-
-    // clone 後に traverse する際、new MeshStandardMaterial を使わず、
-    // 元のマテリアルのままにする（もし必要なら色だけ変える）
-    previewObject.traverse((child)=>{
-      if(child.isMesh){
-        child.castShadow = true;
-        child.receiveShadow = true;
-      }
-    });
+    previewObject.traverse(c=>{ if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; }});
     previewScene.add(previewObject);
     updateRotationStatus();
+    updateModeStatus();
 
-
-    // 初期配置
-    for(let x=0; x<3; x++){
-      for(let z=0; z<2; z++){
-        const pos = new THREE.Vector3((x-1)*1, -0.5*1, (z-0.5)*1);
-
-        const model = currentModel.clone();
-        model.position.copy(pos);
-        scene.add(model);
-
-        const box = hitboxModel.clone();
-        box.position.copy(pos);
-        scene.add(box);
-
-        blocks.push({model, hitbox: box});
-      }
+    for(let x=0;x<3;x++) for(let z=0;z<2;z++){
+      const pos = new THREE.Vector3((x-1)*1, -0.5, (z-0.5)*1);
+      const model = currentModel.clone(); model.position.copy(pos); scene.add(model);
+      const box = hitboxModel.clone(); box.position.copy(pos); scene.add(box);
+      blocks.push({model, hitbox: box});
     }
-
-    // 🔧 カメラとコントロールの初期設定をここでまとめて
-    camera.position.set(5, 6, 5);   // 必要に応じて高さや距離を調整
-    camera.lookAt(0, 0, 0);
-
-    controls.target.set(0, 0, 0);   // 回転・ズームの中心を原点に
-    controls.update();
   }
 }
 
@@ -349,39 +250,26 @@ mainCanvas.addEventListener("pointerdown",(e)=>{
   const rect = mainCanvas.getBoundingClientRect();
   mouse.x = ((e.clientX - rect.left)/rect.width)*2 -1;
   mouse.y = -((e.clientY - rect.top)/rect.height)*2 +1;
-
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObjects(blocks.map(b=>b.hitbox), true);
-
   if(intersects.length>0){
     const hit = intersects[0].object.parent;
     const block = blocks.find(b=>b.hitbox===hit || b.hitbox===hit.parent);
     if(!block) return;
-
     if(mode==="add"){
       const normal = intersects[0].face.normal;
       addBlock(block.hitbox.position, normal);
     }else if(mode==="remove"){
-      scene.remove(block.model);
-      scene.remove(block.hitbox);
+      scene.remove(block.model); scene.remove(block.hitbox);
       blocks.splice(blocks.indexOf(block),1);
     }
-    // mode==="view" のときは何もしない
+    // mode==="view" は何もしない
   }
 });
-
-
 function addBlock(basePos, normal){
   const pos = basePos.clone().add(normal);
-
-  const model = currentModel.clone();
-  model.position.copy(pos);
-  scene.add(model);
-
-  const box = hitboxModel.clone();
-  box.position.copy(pos);
-  scene.add(box);
-
+  const model = currentModel.clone(); model.position.copy(pos); scene.add(model);
+  const box = hitboxModel.clone(); box.position.copy(pos); scene.add(box);
   blocks.push({model, hitbox: box});
 }
 
@@ -393,8 +281,6 @@ function animate(){
   previewRenderer.render(previewScene,previewCamera);
 }
 animate();
-
 </script>
 </body>
 </html>
-

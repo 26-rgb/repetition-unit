@@ -50,13 +50,30 @@
     color: #333;                         /* 読みやすい濃いグレー */
   }
 
+  /* デフォルト（PCなど大きい画面用） */
+  #previewCanvas {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 150px;
+    height: 150px;
+    border: 1px solid #ccc;
+  }
+
+  / * スマホなど画面が狭いとき */
+  @media (max-width: 600px) {
+    #previewCanvas {
+      width: 100px;
+      height: 100px;
+    }
+  }
+
 </style>
 </head>
 <body>
 
 <canvas id="mainCanvas"></canvas>
-<canvas id="previewCanvas" 
-        style="position: absolute; top: 10px; right: 10px; width: 150px; height: 150px; border: 1px solid #ccc;"></canvas>
+<canvas id="previewCanvas"></canvas>
 
 <div id="ui">
   <button id="addMode">追加</button>
@@ -132,8 +149,8 @@ previewRenderer.setSize(150,150);
 
 const previewScene = new THREE.Scene();
 const previewCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-previewCamera.position.set(2,2,2);
-previewCamera.lookAt(0,0,0);
+previewCamera.position.set(1.5,1.5,1.5);
+previewCamera.lookAt(-0.1,0.3,0);
 
 // ✏ 環境光（あれば追加）
 const previewAmbient = new THREE.AmbientLight(0xffffff, 0.8);

@@ -14,20 +14,18 @@
   canvas { display: block; }
 
   /* スマホ向けメディアクエリ追加 */
-  @media (max-width: 768px) {
-    #ui {
-      padding: 24px;              /* 内側余白も2倍に */
-      font-size: 32px;           /* UI全体の文字サイズを2倍に */
+    @media (max-width: 600px) {
+      #ui {
+        bottom: 5px;
+        left: 5px;
+        padding: 12px;
+        font-size: 16px;
+      }
+      #ui button {
+        font-size: 16px;
+        margin: 2px;
+      }
     }
-    #ui button {
-      font-size: 32px;           /* ボタン文字サイズも2倍に */
-      padding: 20px 28px;        /* ボタン内部の余白も2倍に */
-      margin: 4px;               /* ボタン間の隙間も少し広げる */
-    }
-    #rotationStatus {
-      font-size: 32px;           /* ステータス文字サイズも2倍に */
-    }
-  }
 </style>
 </head>
 <body>

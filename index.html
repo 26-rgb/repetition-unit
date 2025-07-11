@@ -63,8 +63,8 @@
   / * スマホなど画面が狭いとき */
   @media (max-width: 600px) {
     #previewCanvas {
-      width: 70px;
-      height: 70px;
+      width: 100px;
+      height: 100px;
     }
   }
 
@@ -78,10 +78,12 @@
 <div id="ui">
   <button id="addMode">追加</button>
   <button id="removeMode">削除</button>
+  <button id="viewMode">プレビュー</button>
   <button id="rotateX">X回転</button>
   <button id="rotateY">Y回転</button>
   <button id="rotateZ">Z回転</button>
   <div id="rotationStatus">回転状態: X=0°, Y=0°, Z=0°</div>
+  <div id="modeStatus">モード: 追加</div>
 </div>
 
 <script type="importmap">
@@ -145,7 +147,9 @@ scene.add(dirLight);
 // プレビュー
 const previewCanvas = document.getElementById("previewCanvas");
 const previewRenderer = new THREE.WebGLRenderer({ canvas: previewCanvas, alpha: true });
-previewRenderer.setSize(150,150);
+const isMobile = window.innerWidth <= 600;
+previewRenderer.setSize(isMobile ? 100 : 150, isMobile ? 100 : 150);
+
 
 const previewScene = new THREE.Scene();
 const previewCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
@@ -184,6 +188,28 @@ function updateRotationStatus() {
 // モード切替
 document.getElementById("addMode").addEventListener("click", ()=>{ mode="add"; });
 document.getElementById("removeMode").addEventListener("click", ()=>{ mode="remove"; });
+
+let mode = "add";
+
+function updateModeStatus() {
+  document.getElementById("modeStatus").textContent = `モード: ${
+    mode === "add" ? "追加" : mode === "remove" ? "削除" : "プレビュー"
+  }`;
+}
+
+document.getElementById("addMode").addEventListener("click", () => {
+  mode = "add";
+  updateModeStatus();
+});
+document.getElementById("removeMode").addEventListener("click", () => {
+  mode = "remove";
+  updateModeStatus();
+});
+document.getElementById("viewMode").addEventListener("click", () => {
+  mode = "view";
+  updateModeStatus();
+});
+
 
 // 回転
 document.getElementById("rotateX").addEventListener("click", ()=>{
@@ -340,8 +366,10 @@ mainCanvas.addEventListener("pointerdown",(e)=>{
       scene.remove(block.hitbox);
       blocks.splice(blocks.indexOf(block),1);
     }
+    // mode==="view" のときは何もしない
   }
 });
+
 
 function addBlock(basePos, normal){
   const pos = basePos.clone().add(normal);

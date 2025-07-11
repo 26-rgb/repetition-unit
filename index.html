@@ -7,25 +7,49 @@
 <style>
   body { margin: 0; overflow: hidden; }
   #ui {
-    position: absolute; bottom: 10px; left: 10px;
-    background: rgba(255,255,255,0.8); padding: 8px; border-radius: 4px;
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    padding: 12px;
+    font-size: 16px;
+    background: rgba(255, 255, 255, 0.9); /* 明るめの半透明背景 */
+    border-radius: 12px;                   /* カード風の丸み */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* 軽い影 */
+    display: flex;
+    flex-wrap: wrap;    /* 複数行に折り返し可能 */
+    gap: 4px;           /* 子要素間の隙間 */
   }
-  #rotationStatus { margin-top: 4px; font-size: 14px; }
-  canvas { display: block; }
 
-  /* スマホ向けメディアクエリ追加 */
-    @media (max-width: 600px) {
-      #ui {
-        bottom: 5px;
-        left: 5px;
-        padding: 12px;
-        font-size: 16px;
-      }
-      #ui button {
-        font-size: 16px;
-        margin: 2px;
-      }
-    }
+  #ui button {
+    font-size: 16px;
+    padding: 10px 14px;
+    margin: 0;                           /* gap を使うので margin は不要 */
+    border: none;                        /* 枠線を消してシンプルに */
+    border-radius: 6px;                  /* 少し丸み */
+    background: linear-gradient(135deg, #8b4513, #a0522d); /* 茶色系グラデーション */
+    color: #fff;                         /* 白文字 */
+    cursor: pointer;                     /* カーソル */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);/* 軽い影 */
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+
+  #ui button:hover {
+    transform: translateY(-2px);         /* 浮き上がる */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+
+  #ui button:active {
+    transform: translateY(0);            /* 戻る */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  #rotationStatus {
+    width: 100%;                         /* 全幅で表示 */
+    font-size: 16px;
+    margin-top: 4px;
+    color: #333;                         /* 読みやすい濃いグレー */
+  }
+
 </style>
 </head>
 <body>

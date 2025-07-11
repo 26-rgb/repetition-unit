@@ -41,6 +41,7 @@
     transform: translateY(0);
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   }
+  
 
   #rotationStatus, #modeStatus {
     width: 100%;
@@ -48,6 +49,17 @@
     margin-top: 4px;
     color: #333;
   }
+  
+  @media (max-width: 600px) {
+    #ui button {
+      font-size: 14px;          /* 文字サイズを少し小さく */
+      padding: 6px 10px;        /* ボタン自体も小さく */
+    }
+    #rotationStatus, #modeStatus {
+      font-size: 14px;          /* ステータス表示も小さく */
+    }
+  }
+
 
   #previewCanvas {
     position: absolute;

@@ -253,8 +253,12 @@ function initIfReady(){
     previewObject = currentModel.clone();
     previewObject.traverse(c=>{ if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; }});
     previewScene.add(previewObject);
+    rotateX = 0;
+    rotateY = 0;
+    rotateZ = 0;
     updateRotationStatus();
     updateModeStatus();
+    updateModelByRotation();
 
     for(let x=0;x<3;x++) for(let z=0;z<2;z++){
       const pos = new THREE.Vector3((x-1)*1, -0.5, (z-0.5)*1);
@@ -306,5 +310,6 @@ animate();
 </script>
 </body>
 </html>
+
 
 

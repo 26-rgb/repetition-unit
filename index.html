@@ -41,6 +41,7 @@
     transform: translateY(0);
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   }
+  
 
   #rotationStatus, #modeStatus {
     width: 100%;
@@ -51,13 +52,14 @@
   
   @media (max-width: 600px) {
     #ui button {
-      font-size: 14px;
-      padding: 6px 10px;
+      font-size: 14px;          /* 文字サイズを少し小さく */
+      padding: 6px 10px;        /* ボタン自体も小さく */
     }
     #rotationStatus, #modeStatus {
-      font-size: 14px;
+      font-size: 14px;          /* ステータス表示も小さく */
     }
   }
+
 
   #previewCanvas {
     position: absolute;
@@ -106,7 +108,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 let rotateX = 0, rotateY = 0, rotateZ = 0;
-let mode = "add";
+let mode = "add";   // ← 二重定義を避けてここで宣言
 const blocks = [];
 let currentModel, hitboxModel;
 const allModels = {};
@@ -128,7 +130,6 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 0, 0);
 controls.update();
 
-// 照明
 const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
 dirLight.position.set(5, 10, 5);
 dirLight.castShadow = true;
@@ -141,9 +142,10 @@ dirLight.shadow.camera.bottom = -5;
 dirLight.shadow.camera.near = 1;
 dirLight.shadow.camera.far = 10;
 scene.add(dirLight);
+
 scene.add(new THREE.AmbientLight(0xffffff, 1));
 
-// プレビュー
+// プレビュー用
 const previewCanvas = document.getElementById("previewCanvas");
 const previewRenderer = new THREE.WebGLRenderer({ canvas: previewCanvas, alpha: true });
 const isMobile = window.innerWidth <= 600;
@@ -183,66 +185,61 @@ function updateModeStatus() {
   }`;
 }
 
-// モードボタン
 document.getElementById("addMode").addEventListener("click", () => { mode="add"; updateModeStatus(); });
 document.getElementById("removeMode").addEventListener("click", () => { mode="remove"; updateModeStatus(); });
 document.getElementById("viewMode").addEventListener("click", () => { mode="view"; updateModeStatus(); });
 
-// 回転ボタン
-document.getElementById("rotateX").addEventListener("click", () => { rotateX = (rotateX+90)%360; updateModelByRotation(); });
-document.getElementById("rotateY").addEventListener("click", () => { rotateY = (rotateY+90)%360; updateModelByRotation(); });
-document.getElementById("rotateZ").addEventListener("click", () => { rotateZ = (rotateZ+90)%360; updateModelByRotation(); });
+document.getElementById("rotateX").addEventListener("click", () => {
+  rotateX = (rotateX+90)%360; rotateY=0; rotateZ=0; updateModelByRotation();
+});
+document.getElementById("rotateY").addEventListener("click", () => {
+  rotateY = (rotateY+90)%360; rotateX=0; rotateZ=0; updateModelByRotation();
+});
+document.getElementById("rotateZ").addEventListener("click", () => {
+  rotateZ = (rotateZ+90)%360; rotateX=0; rotateY=0; updateModelByRotation();
+});
 
 function updateModelByRotation(){
   updateRotationStatus();
-  const key = `model_x_${rotateX}_y_${rotateY}_z_${rotateZ}`;
+  let key = rotateX ? `model_x_${rotateX}` : rotateY ? `model_y_${rotateY}` : rotateZ ? `model_z_${rotateZ}` : "model_x_0";
   currentModel = allModels[key];
-  if(!currentModel) return;
 
   if(previewObject) previewScene.remove(previewObject);
   previewObject = currentModel.clone();
-  previewObject.traverse(c=>{ if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; }});
+  previewObject.traverse(c => { if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; } });
   previewScene.add(previewObject);
 }
 
-// GLBローダー
+// ローダー
 const loader = new GLTFLoader();
 let modelsLoaded = 0;
-
-// X,Y,Z 全組み合わせ (0,90,180,270)
-const angles = [0,90,180,270];
-const files = [];
-angles.forEach(x=>{
-  angles.forEach(y=>{
-    angles.forEach(z=>{
-      const key = `model_x_${x}_y_${y}_z_${z}`;
-      files.push(key);
-    });
-  });
-});
-
+const files = [
+  "model_x_0","model_x_90","model_x_180","model_x_270",
+  "model_y_0","model_y_90","model_y_180","model_y_270",
+  "model_z_0","model_z_90","model_z_180","model_z_270"
+];
 files.forEach(file=>{
   loader.load(file+'.glb', gltf=>{
     const sceneModel = gltf.scene;
     sceneModel.traverse(c=>{ if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; }});
-    allModels[file] = sceneModel;
+    allModels[file]=sceneModel;
     modelsLoaded++; initIfReady();
   });
 });
-
-// 判定用hitbox
 loader.load('modelbox.glb', gltf=>{
   hitboxModel = gltf.scene;
   hitboxModel.traverse(c=>{
-    if(c.isMesh){ c.material.transparent=true; c.material.opacity=0.01; }
+    if(c.isMesh){
+      c.material.transparent=true; c.material.opacity=0.01;
+      c.material.color = new THREE.Color(0x00ff00);
+    }
   });
   modelsLoaded++; initIfReady();
 });
 
-// 初期配置
 function initIfReady(){
   if(modelsLoaded === files.length+1){
-    currentModel = allModels["model_x_0_y_0_z_0"];
+    currentModel = allModels["model_x_0"];
     previewObject = currentModel.clone();
     previewObject.traverse(c=>{ if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; }});
     previewScene.add(previewObject);
@@ -252,15 +249,50 @@ function initIfReady(){
     for(let x=0;x<3;x++) for(let z=0;z<2;z++){
       const pos = new THREE.Vector3((x-1)*1, -0.5, (z-0.5)*1);
       const model = currentModel.clone(); model.position.copy(pos); scene.add(model);
-      const box = hitboxModel.clone(); box.position.copy(pos);
-      scene.add(box);
-
-      blocks.push({
-        model: model,
-        hitbox: box
-      });
+      const box = hitboxModel.clone(); box.position.copy(pos); scene.add(box);
+      blocks.push({model, hitbox: box});
     }
   }
 }
 
+// Raycaster
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+mainCanvas.addEventListener("pointerdown",(e)=>{
+  const rect = mainCanvas.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left)/rect.width)*2 -1;
+  mouse.y = -((e.clientY - rect.top)/rect.height)*2 +1;
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(blocks.map(b=>b.hitbox), true);
+  if(intersects.length>0){
+    const hit = intersects[0].object.parent;
+    const block = blocks.find(b=>b.hitbox===hit || b.hitbox===hit.parent);
+    if(!block) return;
+    if(mode==="add"){
+      const normal = intersects[0].face.normal;
+      addBlock(block.hitbox.position, normal);
+    }else if(mode==="remove"){
+      scene.remove(block.model); scene.remove(block.hitbox);
+      blocks.splice(blocks.indexOf(block),1);
+    }
+    // mode==="view" は何もしない
+  }
+});
+function addBlock(basePos, normal){
+  const pos = basePos.clone().add(normal);
+  const model = currentModel.clone(); model.position.copy(pos); scene.add(model);
+  const box = hitboxModel.clone(); box.position.copy(pos); scene.add(box);
+  blocks.push({model, hitbox: box});
+}
 
+// 描画ループ
+function animate(){
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene,camera);
+  previewRenderer.render(previewScene,previewCamera);
+}
+animate();
+</script>
+</body>
+</html>

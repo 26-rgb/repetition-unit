@@ -178,7 +178,12 @@ function cloneWithUniqueMaterials(object) {
   const clone = object.clone(true);
   clone.traverse(node => {
     if (node.isMesh) {
-      node.material = node.material.clone(); // ★ マテリアルを複製
+      const oldMat = node.material;
+      node.material = oldMat.clone();      // マテリアル複製
+      node.material.color.copy(oldMat.color);  // 色をコピーして濃さを維持
+      node.material.emissive.copy(oldMat.emissive); // 光らせたい場合
+      node.material.opacity = oldMat.opacity;
+      node.material.transparent = oldMat.transparent;
       node.castShadow = true;
       node.receiveShadow = true;
     }
@@ -315,6 +320,7 @@ animate();
 </script>
 </body>
 </html>
+
 
 
 

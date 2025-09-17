@@ -174,18 +174,6 @@ previewScene.add(new THREE.AmbientLight(0xffffff, 0.8));
 
 let previewObject;
 
-function cloneWithUniqueMaterials(object) {
-  const clone = object.clone(true);
-  clone.traverse(node => {
-    if (node.isMesh) {
-      node.material = node.material.clone(); // ★ マテリアルを複製
-      node.castShadow = true;
-      node.receiveShadow = true;
-    }
-  });
-  return clone;
-}
-
 function updateRotationStatus() {
   document.getElementById("rotationStatus").textContent =
     `回転状態: X=${rotateX}°, Y=${rotateY}°, Z=${rotateZ}°`;
@@ -218,7 +206,8 @@ function updateModelByRotation(){
   if (!currentModel) return;
 
   if(previewObject) previewScene.remove(previewObject);
-  previewObject = cloneWithUniqueMaterials(currentModel);
+  previewObject = currentModel.clone();
+  previewObject.traverse(c=>{ if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; } });
   previewScene.add(previewObject);
 }
 
@@ -260,7 +249,8 @@ loader.load('modelbox.glb', gltf=>{
 function initIfReady(){
   if(modelsLoaded === files.length+1){
     currentModel = allModels["model_x_0_y_0_z_0"];
-    previewObject = cloneWithUniqueMaterials(currentModel);
+    previewObject = currentModel.clone();
+    previewObject.traverse(c=>{ if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; }});
     previewScene.add(previewObject);
     updateRotationStatus();
     updateModeStatus();
@@ -299,7 +289,7 @@ mainCanvas.addEventListener("pointerdown",(e)=>{
 });
 function addBlock(basePos, normal){
   const pos = basePos.clone().add(normal);
-  const model = cloneWithUniqueMaterials(currentModel); model.position.copy(pos); scene.add(model);
+  const model = currentModel.clone(); model.position.copy(pos); scene.add(model);
   const box = hitboxModel.clone(); box.position.copy(pos); scene.add(box);
   blocks.push({model, hitbox: box});
 }
@@ -315,3 +305,5 @@ animate();
 </script>
 </body>
 </html>
+
+

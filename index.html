@@ -173,19 +173,24 @@ previewScene.add(previewLight);
 previewScene.add(new THREE.AmbientLight(0xffffff, 0.8));
 
 let previewObject;
-
+  
 function cloneWithUniqueMaterials(object) {
   const clone = object.clone(true);
   clone.traverse(node => {
     if (node.isMesh) {
-      const oldMat = node.material;
-      node.material = oldMat.clone();      // マテリアル複製
-      node.material.color.copy(oldMat.color);  // 色をコピーして濃さを維持
-      node.material.emissive.copy(oldMat.emissive); // 光らせたい場合
-      node.material.opacity = oldMat.opacity;
-      node.material.transparent = oldMat.transparent;
+      node.material = node.material.clone(); // マテリアルは複製
       node.castShadow = true;
       node.receiveShadow = true;
+
+      // 色を濃くしたい場合
+      if (node.material.color) {
+        node.material.color.multiplyScalar(1.5); // 1.0が元の色、1.5で少し濃く
+      }
+
+      // 明るさをさらに調整したい場合
+      if (node.material.emissive) {
+        node.material.emissiveIntensity = 0.3; 
+      }
     }
   });
   return clone;
@@ -320,6 +325,7 @@ animate();
 </script>
 </body>
 </html>
+
 
 
 

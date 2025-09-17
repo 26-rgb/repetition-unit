@@ -190,13 +190,13 @@ document.getElementById("removeMode").addEventListener("click", () => { mode="re
 document.getElementById("viewMode").addEventListener("click", () => { mode="view"; updateModeStatus(); });
 
 document.getElementById("rotateX").addEventListener("click", () => {
-  rotateX = (rotateX+90)%360; rotateY=0; rotateZ=0; updateModelByRotation();
+  rotateX = (rotateX+90)%360; updateModelByRotation();
 });
 document.getElementById("rotateY").addEventListener("click", () => {
-  rotateY = (rotateY+90)%360; rotateX=0; rotateZ=0; updateModelByRotation();
+  rotateY = (rotateY+90)%360; updateModelByRotation();
 });
 document.getElementById("rotateZ").addEventListener("click", () => {
-  rotateZ = (rotateZ+90)%360; rotateX=0; rotateY=0; updateModelByRotation();
+  rotateZ = (rotateZ+90)%360; updateModelByRotation();
 });
 
 function updateModelByRotation(){
@@ -305,5 +305,6 @@ animate();
 </script>
 </body>
 </html>
+
 
 

@@ -252,4 +252,15 @@ function initIfReady(){
     for(let x=0;x<3;x++) for(let z=0;z<2;z++){
       const pos = new THREE.Vector3((x-1)*1, -0.5, (z-0.5)*1);
       const model = currentModel.clone(); model.position.copy(pos); scene.add(model);
-      const box = hitboxModel.clone(); box.position.copy(pos
+      const box = hitboxModel.clone(); box.position.copy(pos);
+      scene.add(box);
+
+      blocks.push({
+        model: model,
+        hitbox: box
+      });
+    }
+  }
+}
+
+

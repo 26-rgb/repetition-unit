@@ -170,7 +170,7 @@ previewLight.shadow.camera.bottom = -2;
 previewLight.shadow.camera.near = 1;
 previewLight.shadow.camera.far = 3;
 previewScene.add(previewLight);
-previewScene.add(new THREE.AmbientLight(0xffffff, 1));
+previewScene.add(new THREE.AmbientLight(0xffffff, 0.8));
 
 let previewObject;
   
@@ -184,12 +184,12 @@ function cloneWithUniqueMaterials(object) {
 
       // 色を濃くしたい場合
       if (node.material.color) {
-        node.material.color.multiplyScalar(3.5); // 1.0が元の色、1.5で少し濃く
+        node.material.color.multiplyScalar(2.5); // 1.0が元の色、1.5で少し濃く
       }
 
       // 明るさをさらに調整したい場合
       if (node.material.emissive) {
-        node.material.emissiveIntensity = 0.5; 
+        node.material.emissiveIntensity = 0.3; 
       }
     }
   });
@@ -325,15 +325,3 @@ animate();
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
